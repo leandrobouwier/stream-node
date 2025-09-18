@@ -1,5 +1,6 @@
 import http from "node:http";
 import { json } from "./middleware/json.js";
+import { routes } from "./routes.js";
 
 // - Criar usuários
 // - Listagem usuários
@@ -31,28 +32,22 @@ import { json } from "./middleware/json.js";
 //middleware - nada mais é que um interceptador - um interceptador no node é uma função que ela vai interceptar nossa
 // requisição. São faceis de ser reconhecido porque sempre receberam "req" e "res"
 
-const users = [];
+//UUID => Unique univesal ID (Ela sempre vai retornar um ID unico)
+
+
+
 
 const server = http.createServer(async (req, res) => {
   const { method, url } = req;
 
   await json(req,res)
 
+  const route = routes.find(route =>{
+    return route.method === method && route.path === url
+  })
 
-  if (method === "GET" && url === "/users") {
-    return res.end(JSON.stringify(users));
-  }
-
-  if (method === "POST" && url === "/users") {
-    const { name, email } = req.body
-
-    users.push({
-      id: 1,
-      name,
-      email
-    });
-    //
-    return res.writeHead(201).end();
+  if (route){
+    return route.handler(req, res)
   }
 
   return res.writeHead(404).end();
